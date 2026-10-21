@@ -15,9 +15,8 @@
 :root{--paper:#1b1115;--ink:#f1e8dc;--wine:#b8283f;--grey:#625559;--muted:#a3958c;--glass:rgba(255,255,255,.08)}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-html{background:var(--paper)}
-body{font-family:"Playfair Display",Georgia,serif;color:var(--ink);background:
- radial-gradient(ellipse at 50% 30%,#2c191f 0%,var(--paper) 60%,#120b0e 100%);
+html{background:radial-gradient(ellipse at 50% 30%,#2c191f 0%,var(--paper) 60%,#120b0e 100%) fixed;background-color:#120b0e}
+body{font-family:"Playfair Display",Georgia,serif;color:var(--ink);background:transparent;
  text-transform:uppercase;letter-spacing:.22em;font-weight:700}
 .app{max-width:420px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:calc(16px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom))}
 .icons{display:flex;justify-content:center;gap:48px;margin-top:8px}
