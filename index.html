@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wine</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Wine">
+<meta name="theme-color" content="#ede1c9">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#ede1c9;--ink:#1d1a17;--wine:#8c1d35;--grey:#a99f8f;--muted:#6e665b}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Playfair Display",Georgia,serif;color:var(--ink);background:
+ radial-gradient(ellipse at 20% 15%,rgba(120,90,50,.14),transparent 45%),
+ radial-gradient(ellipse at 80% 85%,rgba(120,90,50,.16),transparent 45%),
+ radial-gradient(ellipse at 50% 50%,#f3e9d4,var(--paper) 70%,#e3d4b7);
+ text-transform:uppercase;letter-spacing:.22em;font-weight:700}
+.app{max-width:420px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:calc(16px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom))}
+.icons{display:flex;justify-content:center;gap:48px;margin-top:8px}
+button{font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;background:none;border:0;cursor:pointer;padding:0}
+.ic{width:34px;height:34px;border:2px solid var(--ink);border-radius:50%;display:grid;place-items:center}
+.ic svg{width:17px;height:17px;fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.datebar{display:flex;align-items:center;justify-content:space-between;margin-top:18px;padding:0 10px}
+.datebar .arrow{font-size:26px;line-height:1;padding:4px 10px;font-weight:400}
+.datebar .d{text-align:center;font-size:15px;line-height:1.5}
+.datebar .d small{display:block;font-size:12px}
+.datebar .d .today{color:var(--wine);font-size:11px;margin-top:2px}
+.dial{flex:1;display:grid;place-items:center;margin:8px 0}
+svg.ring{width:100%;max-width:380px;height:auto;overflow:visible;user-select:none;-webkit-user-select:none}
+.ring text{font-family:inherit;font-weight:700;fill:var(--ink)}
+.ring .lbl{font-size:12px;letter-spacing:.22em}
+.ring .q{font-size:11.5px;letter-spacing:.2em;text-anchor:middle}
+.ring .yn{font-size:46px;letter-spacing:.06em;text-anchor:middle}
+.ring .kind{font-size:12px;letter-spacing:.28em;text-anchor:middle}
+.ring .time{font-size:13px;letter-spacing:.24em;text-anchor:middle}
+.toggle{display:flex;border:1px solid var(--ink);margin:0 auto;width:240px;font-size:12px}
+.toggle button{flex:1;padding:10px 0;background:#f5ecd9}
+.toggle button.on{background:#5a534b;color:#f5ecd9}
+.page{display:none;flex:1;font-weight:400;text-transform:none;letter-spacing:0;font-size:16px;line-height:1.6;text-align:center;padding:10px 6px}
+.page h2{text-transform:uppercase;letter-spacing:.22em;font-size:20px;margin:0 0 18px}
+.page label{display:block;margin:18px 0 8px;text-transform:uppercase;letter-spacing:.2em;font-size:12px;font-weight:700}
+.page select{font:inherit;font-size:15px;padding:8px 10px;background:#f5ecd9;border:1px solid var(--ink);color:var(--ink);max-width:100%}
+.page .toggle{margin-top:4px}
+.page p{margin:0 0 14px}
+.page a{color:var(--wine)}
+body[data-view=settings] #settings,body[data-view=info] #info{display:block}
+body[data-view=settings] .main,body[data-view=info] .main{display:none}
+.main{display:contents}
+</style>
+</head>
+<body data-view="main">
+<div class="app">
+  <div class="icons">
+    <button class="ic" id="bSet" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></button>
+    <button class="ic" id="bToday" aria-label="Today"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></button>
+    <button class="ic" id="bInfo" aria-label="Info"><svg viewBox="0 0 24 24"><path d="M12 11v6M12 7.5v.2"/></svg></button>
+  </div>
+
+  <div class="main">
+    <div class="datebar">
+      <button class="arrow" id="prev">&#8249;</button>
+      <div class="d" id="date"></div>
+      <button class="arrow" id="next">&#8250;</button>
+    </div>
+    <div class="dial"><svg class="ring" id="ring" viewBox="-200 -200 400 400"></svg></div>
+    <div class="toggle"><button id="vDay" class="on">Day</button><button id="vWeek">Week</button></div>
+  </div>
+
+  <div class="page" id="settings">
+    <h2>Settings</h2>
+    <label for="tz">Time zone</label><select id="tz"></select>
+    <label>Clock</label>
+    <div class="toggle"><button id="h12">12-hour</button><button id="h24" class="on">24-hour</button></div>
+    <p style="margin-top:28px;font-size:14px;color:var(--muted)">Nothing is saved. Settings reset when you close the page.</p>
+  </div>
+
+  <div class="page" id="info">
+    <h2>Wine</h2>
+    <p>Biodynamic grower <b>Maria Thun</b> found that wine tastes different depending on where the Moon stands among the constellations. <b>Fruit</b> and <b>flower</b> days are good for wine. <b>Root</b> and <b>leaf</b> days are not. The hours around the Moon crossing a node or passing perigee (six either side) are <b>generally unfavourable</b> whatever the constellation, and show grey on the dial.</p>
+    <p>Red on the dial means yes. Grey means no. Drag the bottle around the dial to check any moment.</p>
+    <svg viewBox="-150 66 300 50" style="width:300px;max-width:100%;display:block;margin:0 auto 14px" id="legend"></svg>
+    <p>Where you are does not matter: the Moon stands in the same constellation for everyone on Earth at the same instant. Only the clock time differs, so set your time zone in settings and the dial is right for you.</p>
+    <p style="font-size:14px;color:var(--muted)">This page computes the Moon's position itself (Meeus) and uses the astronomical constellation boundaries. The Thun calendar's exact boundaries are unpublished, so a change can differ from the printed book by a few hours. Student project, built to understand how the Thun wine calendar works. Not affiliated with any publisher or app.</p>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ---- Moon position: Meeus, Astronomical Algorithms ch. 47 (truncated series) ---- */
+const sin=x=>Math.sin(x*Math.PI/180),cos=x=>Math.cos(x*Math.PI/180),norm=x=>((x%360)+360)%360;
+const LR=[[0,0,1,0,6288774,-20905355],[2,0,-1,0,1274027,-3699111],[2,0,0,0,658314,-2955968],[0,0,2,0,213618,-569925],[0,1,0,0,-185116,48888],[0,0,0,2,-114332,-3149],[2,0,-2,0,58793,246158],[2,-1,-1,0,57066,-152138],[2,0,1,0,53322,-170733],[2,-1,0,0,45758,-204586],[0,1,-1,0,-40923,-129620],[1,0,0,0,-34720,108743],[0,1,1,0,-30383,104755],[2,0,0,-2,15327,10321],[0,0,1,2,-12528,0],[0,0,1,-2,10980,79661],[4,0,-1,0,10675,-34782],[0,0,3,0,10034,-23210],[4,0,-2,0,8548,-21636],[2,1,-1,0,-7888,24208],[2,1,0,0,-6766,30824],[1,0,-1,0,-5163,-8379],[1,1,0,0,4987,-16675],[2,-1,1,0,4036,-12831],[2,0,2,0,3994,-10445],[4,0,0,0,3861,-11650],[2,0,-3,0,3665,14403],[0,1,-2,0,-2689,-7003],[2,0,-1,2,-2602,0],[2,-1,-2,0,2390,10056],[1,0,1,0,-2348,6322],[2,-2,0,0,2236,-9884],[0,1,2,0,-2120,5751],[0,2,0,0,-2069,0],[2,-2,-1,0,2048,-4950],[2,0,1,-2,-1773,4130],[2,0,0,2,-1595,0],[4,-1,-1,0,1215,-3958],[0,0,2,2,-1110,0],[3,0,-1,0,-892,3258],[2,1,1,0,-810,2616],[4,-1,-2,0,759,-1897],[0,2,-1,0,-713,-2117],[2,2,-1,0,-700,2354],[2,1,-2,0,691,0],[2,-1,0,-2,596,0],[4,0,1,0,549,-1423],[0,0,4,0,537,-1117],[4,-1,0,0,520,-1571],[1,0,-2,0,-487,-1739],[2,1,0,-2,-399,0],[0,0,2,-2,-381,-4421],[1,1,1,0,351,0],[3,0,-2,0,-340,0],[4,0,-3,0,330,0],[2,-1,2,0,327,0],[0,2,1,0,-323,1165],[1,1,-1,0,299,0],[2,0,3,0,294,0],[2,0,-1,-2,0,8752]];
+const BT=[[0,0,0,1,5128122],[0,0,1,1,280602],[0,0,1,-1,277693],[2,0,0,-1,173237],[2,0,-1,1,55413],[2,0,-1,-1,46271],[2,0,0,1,32573],[0,0,2,1,17198],[2,0,1,-1,9266],[0,0,2,-1,8822],[2,-1,0,-1,8216],[2,0,-2,-1,4324],[2,0,1,1,4200],[2,1,0,-1,-3359],[2,-1,-1,1,2463],[2,-1,0,1,2211],[2,-1,-1,-1,2065],[0,1,-1,-1,-1870],[4,0,-1,-1,1828],[0,1,0,1,-1794],[0,0,0,3,-1749],[0,1,-1,1,-1565],[1,0,0,1,-1491],[0,1,1,1,-1475],[0,1,1,-1,-1410],[0,1,0,-1,-1344],[1,0,0,-1,-1335],[0,0,3,1,1107],[4,0,0,-1,1021],[4,0,-1,1,833],[0,0,1,-3,777],[4,0,-2,1,671],[2,0,0,-3,607],[2,0,2,-1,596],[2,-1,1,-1,491],[2,0,-2,1,-451],[0,0,3,-1,439],[2,0,2,1,422],[2,0,-3,-1,421],[2,1,-1,1,-366],[2,1,0,1,-351],[4,0,0,1,331],[2,-1,1,1,315],[2,-2,0,-1,302],[0,0,1,3,-283],[2,1,1,-1,-229],[1,1,0,-1,223],[1,1,0,1,223],[0,1,-2,-1,-220],[2,1,-1,-1,-220],[1,0,1,1,-185],[2,-1,-2,-1,181],[0,1,2,1,-177],[4,0,-2,-1,176],[4,-1,-1,-1,166],[1,0,1,-1,-164],[4,0,1,-1,132],[1,0,-1,-1,-119],[4,-1,0,-1,115],[2,-2,0,1,107]];
+function moon(ms){
+  const T=(ms/86400000+2440587.5-2451545)/36525;
+  const Lp=norm(218.3164477+481267.88123421*T-0.0015786*T*T+T*T*T/538841),D=norm(297.8501921+445267.1114034*T-0.0018819*T*T+T*T*T/545868),
+        M=norm(357.5291092+35999.0502909*T-0.0001536*T*T),Mp=norm(134.9633964+477198.8675055*T+0.0087414*T*T+T*T*T/69699),
+        F=norm(93.272095+483202.0175233*T-0.0036539*T*T-T*T*T/3526000),A1=norm(119.75+131.849*T),A2=norm(53.09+479264.29*T),A3=norm(313.45+481266.484*T),
+        E=1-0.002516*T-0.0000074*T*T;
+  let sl=0,sr=0,sb=0;
+  for(const[d,m,mp,f,l,r]of LR){const a=d*D+m*M+mp*Mp+f*F,e=m?E**Math.abs(m):1;sl+=l*e*sin(a);sr+=r*e*cos(a)}
+  for(const[d,m,mp,f,b]of BT){const a=d*D+m*M+mp*Mp+f*F,e=m?E**Math.abs(m):1;sb+=b*e*sin(a)}
+  sl+=3958*sin(A1)+1962*sin(Lp-F)+318*sin(A2);
+  sb+=-2235*sin(Lp)+382*sin(A3)+175*sin(A1-F)+175*sin(A1+F)+127*sin(Lp-Mp)-115*sin(Lp+Mp);
+  return{lon:norm(Lp+sl/1e6),lat:sb/1e6,dist:385000.56+sr/1000,T};
+}
+/* ---- Constellations: IAU boundaries on the ecliptic, Ophiuchus folded into Scorpio ---- */
+// J2000 ecliptic longitudes where the ecliptic crosses each IAU boundary (derived from the IAU/Roman 1987 boundary data, ±0.001°)
+const BOUNDS=[[28.682,'fruit'],[53.409,'root'],[90.130,'flower'],[117.978,'leaf'],[138.030,'fruit'],[173.846,'root'],[217.809,'flower'],[241.048,'leaf'],[266.239,'fruit'],[299.658,'root'],[327.488,'flower'],[351.648,'leaf']];
+function kindAt(ms){const p=moon(ms),l=norm(p.lon-1.397*p.T);for(let i=BOUNDS.length-1;i>=0;i--)if(l>=BOUNDS[i][0])return BOUNDS[i][1];return'leaf'}
+const GOOD={fruit:true,flower:true};
+const UNFAV_H=6;   // hours either side of a node crossing or perigee that count as generally unfavourable
+
+/* ---- Time zone helpers ---- */
+const S={tz:Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC',h24:true,week:false,day:null,at:null}; // at: chosen instant (ms) or null = live now
+function parts(ms){const f=new Intl.DateTimeFormat('en-US',{timeZone:S.tz,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',weekday:'short'});const o={};for(const x of f.formatToParts(ms))o[x.type]=x.value;return{y:+o.year,m:+o.month,d:+o.day,h:+o.hour,mi:+o.minute,wd:o.weekday}}
+function midnight(y,m,d){let g=Date.UTC(y,m-1,d);for(let i=0;i<3;i++){const p=parts(g);g+=Date.UTC(y,m-1,d)-Date.UTC(p.y,p.m-1,p.d,p.h,p.mi)}
+  for(let i=0;i<4;i++){const p=parts(g);if(Date.UTC(p.y,p.m-1,p.d)>=Date.UTC(y,m-1,d))break;g+=1800000}  // midnight skipped by DST: day starts at 01:00
+  return g}
+const fmtT=ms=>new Intl.DateTimeFormat('en-GB',{timeZone:S.tz,hour:'2-digit',minute:'2-digit',hour12:!S.h24}).format(ms).toUpperCase();
+
+/* ---- One day: segments of {from,to,kind,good} with unfavourable hours forced to "no" ---- */
+const cache=new Map();
+function analyse(y,m,d){
+  const key=S.tz+y+'-'+m+'-'+d;if(cache.has(key))return cache.get(key);
+  const start=midnight(y,m,d),end=midnight(y,m,d+1),STEP=600000;
+  const segs=[];let cur=kindAt(start),s0=start;
+  for(let t=start+STEP;t<=end;t+=STEP){const k=kindAt(t);if(k!==cur){let lo=t-STEP,hi=t;for(let i=0;i<10;i++){const mid=(lo+hi)/2;kindAt(mid)===cur?lo=mid:hi=mid}segs.push({from:s0,to:hi,kind:cur});s0=hi;cur=k}}
+  segs.push({from:s0,to:end,kind:cur});
+  // unfavourable: UNFAV_H hours either side of a node crossing or perigee (Thun's printed bars span about half a day)
+  const H=3600000,win=UNFAV_H*H,events=[];let prev=moon(start-win-2*H),pp=null;
+  for(let t=start-win-H;t<=end+win+H;t+=H){const now=moon(t);
+    if(prev.lat*now.lat<0){let lo=t-H,hi=t;for(let i=0;i<12;i++){const m=(lo+hi)/2;Math.sign(moon(m).lat)===Math.sign(prev.lat)?lo=m:hi=m}events.push(hi)}
+    if(pp&&prev.dist<pp.dist&&prev.dist<now.dist&&prev.dist<372000)events.push(t-H);
+    pp=prev;prev=now}
+  const badAt=ms=>events.some(e=>Math.abs(ms-e)<=win);
+  // split segments at window edges so the dial can show unfavourable hours in grey
+  const cuts=[];for(const e of events)for(const c of [e-win,e+win])if(c>start&&c<end)cuts.push(c);
+  cuts.sort((a,b)=>a-b);
+  const out=[];for(const s of segs){let f=s.from;for(const c of cuts)if(c>f&&c<s.to){out.push({from:f,to:c,kind:s.kind});f=c}out.push({from:f,to:s.to,kind:s.kind})}
+  for(const s of out){s.bad=badAt((s.from+s.to)/2);s.good=!s.bad&&!!GOOD[s.kind]}
+  const r={start,end,segs:out,bad:out.some(s=>s.bad)};cache.set(key,r);return r;
+}
+
+/* ---- Drawing ---- */
+const R=150,W=16;
+const pol=(a,r)=>[r*Math.sin(a*Math.PI/180),-r*Math.cos(a*Math.PI/180)];
+function arc(a0,a1,r,cls,dash){const[x0,y0]=pol(a0,r),[x1,y1]=pol(a1,r),big=a1-a0>180?1:0;return`<path d="M${x0} ${y0}A${r} ${r} 0 ${big} 1 ${x1} ${y1}" fill="none" stroke="${cls}" stroke-width="${W}" ${dash?'stroke-dasharray="4 7" stroke-width="3"':''}/>`}
+function label(a,txt,r,week,fixed){const[x,y]=pol(a,r);const rot=fixed!==undefined?fixed:((a>90&&a<270)?a-180:a);return`<text class="lbl" transform="translate(${x} ${y}) rotate(${rot})" text-anchor="middle" dominant-baseline="middle">${txt}</text>`}
+// centre piece: a red wine bottle. Full when the answer is yes, empty glass when no.
+const BIG='M-7 -52 H7 V-24 Q20 -18 20 -6 V34 Q20 38 16 38 H-16 Q-20 38 -20 34 V-6 Q-20 -18 -7 -24 Z';
+const FILL={fruit:1,flower:.62,leaf:0,root:0}; // Thun ranks fruit days above flower days
+const glass=(full,kind)=>`<g transform="translate(0 22) scale(.92)" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round">
+ <clipPath id="bigc"><path d="${BIG}"/></clipPath>
+ <path d="${BIG}" fill="rgba(255,255,255,.25)"/>
+ ${full?`<rect x="-22" y="${38-FILL[kind]*84}" width="44" height="100" fill="var(--wine)" clip-path="url(#bigc)"/>`:''}
+ <path d="${BIG}" fill="none"/>
+ <rect x="-8" y="-56" width="16" height="10" rx="1.5" fill="${full?'var(--ink)':'none'}"/>
+ <rect x="-14" y="4" width="28" height="18" fill="#f6efe0" stroke-width="1.5"/>
+ <g stroke="var(--ink)" stroke-width="1.3" fill="none" stroke-linecap="round"><circle cx="-4" cy="10" r=".9" fill="var(--ink)"/><circle cx="4" cy="10" r=".9" fill="var(--ink)"/>
+ <path d="${full?'M-5 14 Q0 19 5 14':'M-5 17 Q0 13 5 17'}"/></g></g>
+ <g fill="none" stroke="#9a8a6a" stroke-width="1.2" opacity=".85">${grapes(-82)}${grapes(82)}</g>`;
+// day type as a symbol instead of a word
+const SYM={
+ fruit:'<g transform="translate(0 86)"><circle r="9" cy="2" fill="#9b2335" stroke="var(--ink)" stroke-width="1.5"/><path d="M0 -7 Q1 -12 4 -13" fill="none" stroke="var(--ink)" stroke-width="1.5"/><path d="M1 -8 Q6 -12 9 -7 Q4 -4 1 -8Z" fill="#4f7d5a" stroke="var(--ink)" stroke-width="1"/></g>',
+ flower:'<g transform="translate(0 86)" stroke="var(--ink)" stroke-width="1.2"><g fill="#d4a24c">'+[0,72,144,216,288].map(a=>`<ellipse rx="4" ry="7" cy="-7" transform="rotate(${a})"/>`).join('')+'</g><circle r="3.5" fill="#f3e9d2"/></g>',
+ leaf:'<g transform="translate(0 86)"><path d="M0 -12 C10 -6 10 8 0 12 C-10 8 -10 -6 0 -12Z" fill="#4f7d5a" stroke="var(--ink)" stroke-width="1.5"/><path d="M0 -9 V9" stroke="var(--ink)" stroke-width="1.2"/></g>',
+ root:'<g transform="translate(0 86)"><path d="M-6 -4 Q0 -2 6 -4 L1 13 Q0 15 -1 13Z" fill="#c8722f" stroke="var(--ink)" stroke-width="1.5"/><path d="M0 -4 V-13 M-3 -5 L-7 -12 M3 -5 L7 -12" fill="none" stroke="#4f7d5a" stroke-width="2" stroke-linecap="round"/></g>'};
+function grapes(x){let s=`<path d="M${x} -18 q${x<0?-14:14} -16 ${x<0?-4:4} -30" />`;const rows=[[-9,9],[-18,0,18],[-9,9],[0]];rows.forEach((r,i)=>r.forEach(dx=>{s+=`<circle cx="${x+dx*0.9}" cy="${-14+i*14}" r="7.5"/>`}));return s}
+// the marker: a wine bottle, three quarters full, wine sloshing. Neck points outward.
+const BOTTLE='M-4 -34 H4 V-16 Q12 -12 12 -4 V30 Q12 34 8 34 H-8 Q-12 34 -12 30 V-4 Q-12 -12 -4 -16 Z';
+function pin(a,r){const[x,y]=pol(a,r);return`<g transform="translate(${x} ${y}) rotate(${a}) scale(.85)" style="cursor:grab">
+ <circle r="36" fill="transparent"/>
+ <clipPath id="bc"><path d="${BOTTLE}"/></clipPath>
+ <path d="${BOTTLE}" fill="#efe6d3"/>
+ <g clip-path="url(#bc)"><g id="wine"><path id="wsurf" fill="var(--wine)"/></g></g>
+ <path d="${BOTTLE}" fill="none" stroke="var(--ink)" stroke-width="2"/>
+ <rect x="-4" y="-36" width="8" height="8" rx="1" fill="var(--ink)"/>
+ <rect x="-8" y="6" width="16" height="12" fill="#f6efe0" stroke="var(--ink)" stroke-width="1"/></g>`}
+const TIER={fruit:'Very good',flower:'Good',leaf:'Poor',root:'Bad'}; // Thun's ranking: fruit best, then flower; root worst
+function center(good,kind,time,bad){return`<text class="yn" y="-62">${good?'Yes':'No'}</text><text class="q" y="-42">${bad?'Unfavourable':TIER[kind]}</text>${glass(good,kind)}<title>${kind} day</title>${SYM[kind]}<text class="time" y="112">${time}</text>`}
+
+function render(){
+  const now=Date.now(),{y,m,d}=S.day,A=analyse(y,m,d),T=parts(now),isToday=y===T.y&&m===T.m&&d===T.d;
+  const dnum=(ms)=>new Intl.DateTimeFormat('en-GB',{timeZone:S.tz,day:'numeric',month:'long'}).format(ms);
+  const wday=(ms)=>new Intl.DateTimeFormat('en-GB',{timeZone:S.tz,weekday:'long'}).format(ms);
+  let svg='';
+  if(!S.week){
+    const span=A.end-A.start,ang=ms=>(ms-A.start)/span*360;
+    for(const s of A.segs)svg+=arc(ang(s.from),Math.min(ang(s.to),359.99),R,s.good?'var(--wine)':'var(--grey)');
+    for(let a=0;a<360;a+=90){const[x0,y0]=pol(a,R-W),[x1,y1]=pol(a,R+W);svg+=`<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--paper)" stroke-width="3"/>`}
+    const names=S.h24?['00:00','03:00','06:00','09:00','12:00','15:00','18:00','21:00']:['Midnight','3am','6am','9am','Noon','3pm','6pm','9pm'];
+    const rots=[0,45,90,45,0,-45,-90,-45];
+    names.forEach((n,i)=>svg+=label(i*45,n,R+30,false,rots[i]));
+    const at=S.at!==null?S.at:isToday?now:A.start+span/2;    // headline moment: chosen, now, or noon of that day
+    const seg=A.segs.find(s=>at>=s.from&&at<s.to)||A.segs[0];
+    svg+=center(seg.good,seg.kind,fmtT(at),seg.bad);
+    svg+=pin(ang(at),R);S.pinA=ang(at);
+    S.view={start:A.start,end:A.end};
+    document.getElementById('date').innerHTML=`${wday(A.start+43200000)}<small>${dnum(A.start+43200000)}</small><small class="today">${isToday?'Today':'&nbsp;'}</small>`;
+  }else{
+    // week Monday..Sunday containing the selected day
+    const wd=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],p=parts(A.start+43200000),off=wd.indexOf(p.wd);
+    const days=[];for(let i=0;i<7;i++){const dt=new Date(Date.UTC(y,m-1,d-off+i));days.push(analyse(dt.getUTCFullYear(),dt.getUTCMonth()+1,dt.getUTCDate()))}
+    days.forEach((D,i)=>{const a0=i*360/7+1.5,a1=(i+1)*360/7-1.5,span=D.end-D.start;
+      for(const s of D.segs){const b0=a0+(s.from-D.start)/span*(a1-a0),b1=a0+(s.to-D.start)/span*(a1-a0);svg+=arc(b0,b1,R,s.good?'var(--wine)':'var(--grey)')}
+      svg+=label(i*360/7+360/14,wd[i],R+30,true)});
+    const inWeek=now>=days[0].start&&now<days[6].end;
+    const at=S.at!==null?S.at:inWeek?now:A.start+(A.end-A.start)/2,Dsel=days.find(D=>at>=D.start&&at<D.end)||A;
+    const seg=Dsel.segs.find(s=>at>=s.from&&at<s.to)||Dsel.segs[0];
+    svg+=center(seg.good,seg.kind,wd[days.indexOf(Dsel)]+' '+fmtT(at),seg.bad);
+    S.view={start:days[0].start,end:days[6].end};
+    const i=days.indexOf(Dsel),a=i*360/7+(at-Dsel.start)/(Dsel.end-Dsel.start)*360/7;svg+=pin(a,R);S.pinA=a;
+    const f=ms=>new Intl.DateTimeFormat('en-GB',{timeZone:S.tz,day:'numeric',month:'short'}).format(ms);
+    document.getElementById('date').innerHTML=`${f(days[0].start+43200000)} <small style="display:inline">${wd[0]}</small> - ${f(days[6].start+43200000)} <small style="display:inline">${wd[6]}</small><small>&nbsp;</small><small class="today">${inWeek?'This week':'&nbsp;'}</small>`;
+  }
+  document.getElementById('ring').innerHTML=svg;
+}
+
+/* ---- Wiring ---- */
+const $=id=>document.getElementById(id);
+function setDay(y,m,d){const dt=new Date(Date.UTC(y,m-1,d));S.day={y:dt.getUTCFullYear(),m:dt.getUTCMonth()+1,d:dt.getUTCDate()};render()}
+function today(){S.at=null;const p=parts(Date.now());setDay(p.y,p.m,p.d)}
+function shift(n){if(S.at!==null)S.at+=n*86400000;setDay(S.day.y,S.day.m,S.day.d+n)}
+$('prev').onclick=()=>shift(S.week?-7:-1);
+$('next').onclick=()=>shift(S.week?7:1);
+$('bToday').onclick=()=>{document.body.dataset.view='main';today()};
+// drag or tap on the ring to pick any moment
+const ring=$('ring');let dragging=false,lastA=null;
+function angleOf(e){const r=ring.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*400-200,y=(e.clientY-r.top)/r.height*400-200;return{a:(Math.atan2(x,-y)*180/Math.PI+360)%360,d:Math.hypot(x,y)}}
+function pick(e){
+  const {a}=angleOf(e),span=S.view.end-S.view.start,n=S.week?7:1;
+  if(lastA!==null&&lastA>270&&a<90){S.day=dayOf(S.view.end+43200000);S.at=S.view.end+a/360*span}            // crossed midnight forwards
+  else if(lastA!==null&&lastA<90&&a>270){S.day=dayOf(S.view.start-43200000*(S.week?13:1));S.at=S.view.start-(360-a)/360*span} // crossed backwards
+  else S.at=S.view.start+a/360*span;
+  lastA=a;render()}
+function dayOf(ms){const p=parts(ms);return{y:p.y,m:p.m,d:p.d}}
+ring.onpointerdown=e=>{const {a,d}=angleOf(e);if(d<R-45||d>R+45)return;dragging=true;lastA=null;ring.setPointerCapture(e.pointerId);pick(e)};
+ring.onpointermove=e=>{if(dragging)pick(e)};
+ring.onpointerup=ring.onpointercancel=()=>dragging=false;
+ring.style.touchAction='none';
+const view=v=>document.body.dataset.view=document.body.dataset.view===v?'main':v;
+$('bSet').onclick=()=>view('settings');$('bInfo').onclick=()=>view('info');
+$('vDay').onclick=()=>{S.week=false;$('vDay').classList.add('on');$('vWeek').classList.remove('on');if(S.at!==null){const p=parts(S.at);setDay(p.y,p.m,p.d)}else render()};
+$('vWeek').onclick=()=>{S.week=true;$('vWeek').classList.add('on');$('vDay').classList.remove('on');render()};
+$('h12').onclick=()=>{S.h24=false;$('h12').classList.add('on');$('h24').classList.remove('on');render()};
+$('h24').onclick=()=>{S.h24=true;$('h24').classList.add('on');$('h12').classList.remove('on');render()};
+let zones=[];try{zones=Intl.supportedValuesOf('timeZone')}catch(e){zones=['UTC','Europe/London','Europe/Amsterdam','America/New_York']}
+if(!zones.includes(S.tz))zones.unshift(S.tz);
+$('tz').innerHTML=zones.map(z=>`<option ${z===S.tz?'selected':''}>${z}</option>`).join('');
+$('tz').onchange=e=>{S.tz=e.target.value;cache.clear();today()};
+today();setInterval(render,60000);
+$('legend').innerHTML=[['fruit','Fruit'],['flower','Flower'],['leaf','Leaf'],['root','Root']].map(([k,n],i)=>`<g transform="translate(${-105+i*70} 0)">${SYM[k]}<text y="110" text-anchor="middle" font-size="9" letter-spacing=".2em" font-weight="700" fill="var(--ink)">${n.toUpperCase()}</text></g>`).join('');
+
+/* ---- Wine physics: the surface stays level with gravity, lags and rocks when the bottle moves ---- */
+// Surface height above the bottle's centre so that the bottle is 3/4 full at every tilt (precomputed per degree).
+const LEVEL=(()=>{const pts=[];for(let x=-11;x<=11;x+=2)for(let y=-33;y<=33;y+=2)pts.push([x,y]);const out=[];
+  for(let deg=0;deg<360;deg++){const c=Math.cos(deg*Math.PI/180),s=Math.sin(deg*Math.PI/180),ys=pts.map(([x,y])=>x*s+y*c).sort((p,q)=>p-q);out.push(ys[Math.floor(ys.length*0.25)])}return out})();
+let slosh=0,sv=0,prevA=null,prevT=performance.now();
+function tick(t){
+  const dt=Math.min(0.05,(t-prevT)/1000);prevT=t;
+  const a=S.pinA||0;let dA=prevA===null?0:a-prevA;if(dA>180)dA-=360;if(dA<-180)dA+=360;prevA=a;
+  const omega=dA/Math.max(dt,0.001);                    // bottle angular velocity, deg/s
+  sv+=(-45*slosh-2.2*sv-1.1*omega)*dt;                  // spring back to level, light damping, strong kick from motion
+  slosh+=sv*dt;slosh=Math.max(-55,Math.min(55,slosh));
+  const g=document.getElementById('wine'),p=document.getElementById('wsurf');
+  if(g&&p){
+    const tilt=-a+slosh;                                // rotate the wine frame so "down" is screen-down, plus slosh
+    const phi=((Math.round(a-slosh)%360)+360)%360,top=LEVEL[phi];
+    const w=Math.max(-9,Math.min(9,sv*0.12));           // ripple on the surface while it moves
+    g.setAttribute('transform',`rotate(${tilt})`);
+    p.setAttribute('d',`M-80 ${top} Q-40 ${top+w} 0 ${top} T80 ${top} V120 H-80 Z`);
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
