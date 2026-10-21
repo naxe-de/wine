@@ -1,6 +1,6 @@
 # Wine
 
-Is it a good moment to open a bottle? A dial that follows Maria Thun's biodynamic wine calendar.
+Is it a good moment to open a bottle? 
 
 Open `index.html`. One file, no dependencies, nothing stored.
 
